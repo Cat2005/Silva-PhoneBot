@@ -93,6 +93,7 @@ const openAPIGet = async (req, res) => {
 //   });
 
 app.post('/gatherInput', async (request, response) => {
+
     const twiml = new VoiceResponse();
 
     const gather = twiml.gather({
@@ -104,26 +105,56 @@ app.post('/gatherInput', async (request, response) => {
     gather.say({
         voice: 'alice',
     }, "Hi there, I'm Silva, how can I help");
-
     // Render the response as XML in reply to the webhook request
+    console.log(twiml.toString());
     response.type('text/xml');
     response.send(twiml.toString());
-});
+    });
 
-app.post('/voice', async (request, response) => {
-    const userResponse = request.body.SpeechResult;
-    console.log('User response:', userResponse);
 
-    // Handle the user's response here
-
-    // Return a response to Twilio
-    const twiml = new VoiceResponse();
-    twiml.say('Thank you for your response.');
-
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
-
+app.all('/voice', async (request, response) => {
+    console.log("Hi request was", request.body);
+    // console.log("Hi, I'm having trouble with my Youtube.");
+    try {
+    //   const speechToText = request.body.speechToText;
+        
+        const send = {
+            // speechToText: "Hi, I'm having trouble with Youtube"
+            speechToText: "Hello"
+           
+            // speechToText: await awaitUserResponse()
+          };
+        
+        const result = await openAPIGet({
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: send,
+      });
+    
+    //   const result = await openAPIGet("Hi, I'm having trouble with my Youtube.");
+  
+      // Use the Twilio Node.js SDK to build an XML response
+      const twiml = new VoiceResponse();
+      console.log(result);
+      twiml.say(
+        {
+          voice: 'Polly.Joanna', // Replace with the desired Amazon Polly voice
+        },
+        result
+      );
+    //   twiml.say(result);
+  
+      // Render the response as XML in reply to the webhook request
+      response.type('text/xml');
+      response.send(twiml.toString());
+    } catch (error) {
+      // Consider implementing your own error handling logic here
+      console.error(error);
+      response.status(500).json({ error: error.message });
+    }
+  });
   
   // Create an HTTP server and listen for requests on port 3000
   app.listen(3000, () => {
