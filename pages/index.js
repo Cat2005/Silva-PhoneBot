@@ -3,6 +3,7 @@ import { useState } from "react";
 import styles from "./index.module.css";
 
 export default function Home() {
+  const fetch = require('node-fetch');
   const express = require('express');
   const VoiceResponse = require('twilio').twiml.VoiceResponse;
 
@@ -39,7 +40,7 @@ export default function Home() {
   async function onSubmit(event) {
     event.preventDefault();
     try {
-      const response = await fetch("/api/generate", {
+      const APIresponse = await fetch("/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,9 +48,8 @@ export default function Home() {
         body: JSON.stringify({ animal: animalInput }),
       });
 
-      const data = await response.json();
-      if (response.status !== 200) {
-        throw data.error || new Error(`Request failed with status ${response.status}`);
+      const data = await APIresponse.json();
+      if (APIresponse.status !== 200) {
       }
 
       setResult(data.result);
