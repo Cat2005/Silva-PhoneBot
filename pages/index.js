@@ -3,8 +3,38 @@ import { useState } from "react";
 import styles from "./index.module.css";
 
 export default function Home() {
+  const express = require('express');
+  const VoiceResponse = require('twilio').twiml.VoiceResponse;
+
+  const app = express();
+
+
+  app.post('/voice', (request, response) => {
+    // Use the Twilio Node.js SDK to build an XML response
+    const twiml = new VoiceResponse();
+    twiml.say('Hi,');
+  
+    // Render the response as XML in reply to the webhook request
+    response.type('text/xml');
+    response.send(twiml.toString());
+  });
+  
+  // Create an HTTP server and listen for requests on port 3000
+  app.listen(3000, () => {
+    console.log(
+      'Now listening on port 3000. ' +
+      'Be sure to restart when you make code changes!'
+    );
+  });
+
+
   const [animalInput, setAnimalInput] = useState("");
   const [result, setResult] = useState();
+
+  // const ngrok = require('ngrok');
+  // (async function() {
+  //   const url = await ngrok.connect(3000);
+  // })();
 
   async function onSubmit(event) {
     event.preventDefault();
@@ -39,13 +69,13 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <img src="/dog.png" className={styles.icon} />
-        <h3>Name my pet</h3>
+     
+        <h3>Tech Help</h3>
         <form onSubmit={onSubmit}>
           <input
             type="text"
             name="animal"
-            placeholder="Enter an animal"
+            placeholder="Enter your problem"
             value={animalInput}
             onChange={(e) => setAnimalInput(e.target.value)}
           />
