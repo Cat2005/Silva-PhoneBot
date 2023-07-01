@@ -1,4 +1,4 @@
-import { Configuration, OpenAIApi } from "openai";
+const { Configuration, OpenAIApi } = require('openai');
 const express = require('express');
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 
@@ -11,6 +11,18 @@ const openAPIGet = async (req, res) => {
       });
     const openai = new OpenAIApi(configuration);
 
+    const generatePrompt = (prompt) => {
+        // console.log("prompt is", prompt);
+  
+     
+        return `You are a voice assistant who is trying to help elderly people with tech support. The prompt you will receive below
+        is a transcript of what they have said. Please provide your response, which will be spoken out loud to them.
+        Make sure it is simple and concise, and easy to understand when it is spoken out loud. Make sure you are kind
+        and friendly.
+        Here is the prompt:  ${prompt}'
+      `;
+      }
+
 
     if (!configuration.apiKey) {
         res.status(500).json({
@@ -21,7 +33,10 @@ const openAPIGet = async (req, res) => {
         return;
       }
     
-      const speechToText = req;
+      
+      const speechToText = req.body.speechToText;
+    //   console.log(speechToText);
+    //   console.log(generatePrompt(speechToText));
       
     
       try {
@@ -31,7 +46,8 @@ const openAPIGet = async (req, res) => {
           temperature: 0.6,
           max_tokens: 200,
         });
-        res.status(200).json({ result: completion.data.choices[0].text });
+        console.log(completion.data.choices[0].text);
+        return completion.data.choices[0].text;
       } catch(error) {
         // Consider adjusting the error handling logic for your use case
         if (error.response) {
@@ -48,63 +64,66 @@ const openAPIGet = async (req, res) => {
       }
     
     
-    function generatePrompt(prompt) {
-     
-      return `You are a voice assistant who is trying to help elderly people with tech support. The prompt you will receive below
-      is a transcript of what they have said. Please provide your response, which will be spoken out loud to them.
-      Make sure it is simple and concise, and easy to understand when it is spoken out loud. Make sure you are kind
-      and friendly.
-      Here is the prompt:  ${prompt}'
-    `;
-    }
+    
 }
 
-
-
+// app.post('/gatherInput', (request, response) => {
+//     const twiml = new VoiceResponse();
   
-
-
-
-  app.post('/voice', async (request, response) => {
-
-   
-
-       
-    
-      
-
-    try {
-        const APIresponse = await fetch("/api/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ animal: "Hi, my Youtube is not working" }),
-        });
+//     const gather = twiml.gather({
+//       input: 'speech', // Accept speech input
+//       timeout: 10, // Maximum timeout in seconds
+//       action: '/processInput', // URL to receive the gathered input
+//       method: 'POST',
+//     });
+//     gather.say(
+//         {
+//           voice: 'Polly.Amy', // Replace with the desired Amazon Polly voice
+//         },
+//         "Hi there, I am Silva, what do you need help with today?"
+//       );
   
-        const data = await APIresponse.json();
-        if (APIresponse.status !== 200) {
-          throw data.error || new Error(`Request failed with status ${APIresponse.status}`);
-        }
+//     // gather.say('Hi there, I am Silva, what do you need help with today?');
   
-        const result = data.result;
+//     // // If no input is received, handle the case
+//     // twiml.say("We didn't receive any input. Goodbye!");
+  
+//     response.type('text/xml');
+//     response.send(twiml.toString());
+//   });
 
-         // Use the Twilio Node.js SDK to build an XML response
-         const twiml = new VoiceResponse();
-         twiml.say(result);
-     
-         // Render the response as XML in reply to the webhook request
-         response.type('text/xml');
-         response.send(twiml.toString());
-        
-      } catch(error) {
-        // Consider implementing your own error handling logic here
-        console.error(error);
-        // alert(error.message);
-      }
+app.post('/gatherInput', async (request, response) => {
+    const twiml = new VoiceResponse();
 
-       
-  });
+    const gather = twiml.gather({
+        input: 'speech',
+        speechTimeout: 'auto',
+        action: '/voice'
+    });
+
+    gather.say({
+        voice: 'alice',
+    }, "Hi there, I'm Silva, how can I help");
+
+    // Render the response as XML in reply to the webhook request
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/voice', async (request, response) => {
+    const userResponse = request.body.SpeechResult;
+    console.log('User response:', userResponse);
+
+    // Handle the user's response here
+
+    // Return a response to Twilio
+    const twiml = new VoiceResponse();
+    twiml.say('Thank you for your response.');
+
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
   
   // Create an HTTP server and listen for requests on port 3000
   app.listen(3000, () => {
