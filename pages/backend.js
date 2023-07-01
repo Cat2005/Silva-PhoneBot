@@ -1,26 +1,38 @@
 const { Configuration, OpenAIApi } = require('openai');
 const express = require('express');
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
+const bodyParser = require('body-parser');
 
+let gptPrompt = `You are a voice assistant called Silva who is trying to help elderly people with tech support.
+The prompt you will receive below is a transcript of what you and they have said so far.
+Please provide your response, which will be spoken out loud to them.
+Make sure it is simple and concise, and easy to understand when it is spoken out loud.
+Make sure you are kind and friendly.
+Also, make sure you don't say 'The response is:' or 'Response:' in your answer. And make sure when you answer, you shouldn't say 'Silva:' at the start either, that's just 
+for the transcript. If the user asks you to talk more slowly
+Just immediately start answering the question please. M
+Here is the transcript so far:
+Silva: Hi there, I'm Silva, how can I help?
+User: `;
 
 const app = express();
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 const openAPIGet = async (req, res) => {
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: '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',
       });
     const openai = new OpenAIApi(configuration);
 
     const generatePrompt = (prompt) => {
         // console.log("prompt is", prompt);
+        
   
-     
-        return `You are a voice assistant who is trying to help elderly people with tech support. The prompt you will receive below
-        is a transcript of what they have said. Please provide your response, which will be spoken out loud to them.
-        Make sure it is simple and concise, and easy to understand when it is spoken out loud. Make sure you are kind
-        and friendly.
-        Here is the prompt:  ${prompt}'
-      `;
+        gptPrompt += prompt + '\n';
+        console.log(gptPrompt);
+        return gptPrompt
+      
       }
 
 
@@ -47,6 +59,7 @@ const openAPIGet = async (req, res) => {
           max_tokens: 200,
         });
         console.log(completion.data.choices[0].text);
+        gptPrompt += "Silva: " + completion.data.choices[0].text + '\n';
         return completion.data.choices[0].text;
       } catch(error) {
         // Consider adjusting the error handling logic for your use case
@@ -92,7 +105,7 @@ const openAPIGet = async (req, res) => {
 //     response.send(twiml.toString());
 //   });
 
-app.post('/gatherInput', async (request, response) => {
+app.all('/gatherInput', async (request, response) => {
 
     const twiml = new VoiceResponse();
 
@@ -100,27 +113,48 @@ app.post('/gatherInput', async (request, response) => {
         input: 'speech',
         speechTimeout: 'auto',
         action: '/voice'
+    }).say({
+        voice: 'alice',
+    }, "Hi there, I'm Silva, how can I help?");
+
+    
+    // Render the response as XML in reply to the webhook request
+    // console.log(twiml.toString());
+    response.type('text/xml');
+    response.send(twiml.toString());
     });
 
-    gather.say({
-        voice: 'alice',
-    }, "Hi there, I'm Silva, how can I help");
+
+app.all('/Brr', async (request, response) => {
+
+    const twiml = new VoiceResponse();
+
+    const gather = twiml.gather({
+        input: 'speech',
+        speechTimeout: 'auto',
+        action: '/voice'
+    })
+
+    
     // Render the response as XML in reply to the webhook request
-    console.log(twiml.toString());
+    // console.log(twiml.toString());
     response.type('text/xml');
     response.send(twiml.toString());
     });
 
 
 app.all('/voice', async (request, response) => {
-    console.log("Hi request was", request.body);
+    
     // console.log("Hi, I'm having trouble with my Youtube.");
     try {
+        console.log(request.body.SpeechResult);
+        // console.log("Hi request was", request.body.SpeechResult);
+        
     //   const speechToText = request.body.speechToText;
         
         const send = {
             // speechToText: "Hi, I'm having trouble with Youtube"
-            speechToText: "Hello"
+            speechToText: request.body.SpeechResult
            
             // speechToText: await awaitUserResponse()
           };
@@ -140,10 +174,12 @@ app.all('/voice', async (request, response) => {
       console.log(result);
       twiml.say(
         {
-          voice: 'Polly.Joanna', // Replace with the desired Amazon Polly voice
+            voice: 'alice', // Replace with the desired Amazon Polly voice
         },
         result
       );
+      twiml.redirect('/Brr');
+      
     //   twiml.say(result);
   
       // Render the response as XML in reply to the webhook request
