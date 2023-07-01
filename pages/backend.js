@@ -8,9 +8,11 @@ The prompt you will receive below is a transcript of what you and they have said
 Please provide your response, which will be spoken out loud to them.
 Make sure it is simple and concise, and easy to understand when it is spoken out loud.
 Make sure you are kind and friendly.
-Also, make sure you don't say 'The response is:' or 'Response:' in your answer. And make sure when you answer, you shouldn't say 'Silva:' at the start either, that's just 
-for the transcript. If the user asks you to talk more slowly
-Just immediately start answering the question please. M
+The following piece of information is VERY IMPORTANT: Make sure when you answer, your response should NEVER say 'Silva:' at the start, EVER.
+Also, make sure you don't say 'The response is:' or 'Response:' in your answer. 
+If the user asks you to talk more slowly, put more commas in your answer so it will be read out more slowly. 
+Also, if at any point the user seems really frustrated or upset, or nothing seems to be working, tell them "It seems you may need some expert help. Would you like me to put you into contact with a human expert?"
+Just immediately start answering the question please. 
 Here is the transcript so far:
 Silva: Hi there, I'm Silva, how can I help?
 User: `;
@@ -21,7 +23,7 @@ app.use(bodyParser.json());
 
 const openAPIGet = async (req, res) => {
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: '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',
       });
     const openai = new OpenAIApi(configuration);
 
