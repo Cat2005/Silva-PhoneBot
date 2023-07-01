@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 
 const openAPIGet = async (req, res) => {
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: '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',
       });
     const openai = new OpenAIApi(configuration);
 
@@ -62,7 +62,7 @@ const openAPIGet = async (req, res) => {
         });
         console.log(completion.data.choices[0].text);
         gptPrompt += "Silva: " + completion.data.choices[0].text + '\n';
-        return completion.data.choices[0].text;
+        return completion.data.choices[0].text.replace('Silva:', '');
       } catch(error) {
         // Consider adjusting the error handling logic for your use case
         if (error.response) {
@@ -116,7 +116,7 @@ app.all('/gatherInput', async (request, response) => {
         speechTimeout: 'auto',
         action: '/voice'
     }).say({
-        voice: 'alice',
+        voice: 'Polly.Joanna',
     }, "Hi there, I'm Silva, how can I help?");
 
     
@@ -149,14 +149,15 @@ app.all('/voice', async (request, response) => {
     
     // console.log("Hi, I'm having trouble with my Youtube.");
     try {
-        console.log(request.body.SpeechResult);
+        console.log(request.body.SpeechResult.replace('Silva:', ''));
+
         // console.log("Hi request was", request.body.SpeechResult);
         
     //   const speechToText = request.body.speechToText;
         
         const send = {
             // speechToText: "Hi, I'm having trouble with Youtube"
-            speechToText: request.body.SpeechResult
+            speechToText: request.body.SpeechResult.replace('Silva:', '')
            
             // speechToText: await awaitUserResponse()
           };
@@ -176,7 +177,7 @@ app.all('/voice', async (request, response) => {
       console.log(result);
       twiml.say(
         {
-            voice: 'alice', // Replace with the desired Amazon Polly voice
+            voice: 'Polly.Joanna', // Replace with the desired Amazon Polly voice
         },
         result
       );
