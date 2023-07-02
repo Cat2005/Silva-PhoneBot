@@ -157,7 +157,7 @@ app.all('/gatherInput', async (request, response) => {
         action: '/voice'
     }).say({
         voice: 'Google.en-GB-Neural2-A',
-    }, result);
+    }, "Hi there, I'm glad we reconnected. " + result);
 
     } else{
         previousUser = true;
