@@ -2,9 +2,23 @@ const { Configuration, OpenAIApi } = require('openai');
 const express = require('express');
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 const bodyParser = require('body-parser');
+require('dotenv').config();
 
 
 let gptPrompt = `You are a voice assistant called Silva who is trying to help elderly people with tech support.
+The prompt you will receive below is a transcript of what you and they have said so far.
+Please provide your response, which will be spoken out loud to them.
+Make sure it is simple and concise, and easy to understand when it is spoken out loud.
+Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript.
+The following piece of information is VERY IMPORTANT: Make sure when you answer, your response should NEVER say 'Silva:' at the start, EVER.
+Also, make sure you don't say 'The response is:' or 'Response:' in your answer. 
+If the user asks you to talk more slowly, put more commas in your answer so it will be read out more slowly. 
+Also, if at any point the user seems really frustrated or upset, or nothing seems to be working, tell them "It seems you may need some expert help. Would you like me to put you into contact with a human expert?"
+Just immediately start answering the question please. 
+Here is the transcript so far:
+ `;
+
+ let ogprompt = `You are a voice assistant called Silva who is trying to help elderly people with tech support.
 The prompt you will receive below is a transcript of what you and they have said so far.
 Please provide your response, which will be spoken out loud to them.
 Make sure it is simple and concise, and easy to understand when it is spoken out loud.
@@ -37,25 +51,32 @@ app.use(bodyParser.json());
 
 const openAPIGet = async (req, res) => {
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: "",
       });
     const openai = new OpenAIApi(configuration);
 
     const generatePrompt = (prompt) => {
         // console.log("prompt is", prompt);
         if (reconnectMessage) {
-            gptPrompt = `You are a phone call voice assistant called Silva who is trying to help elderly people with tech support. You must provide your response to the user which has just been disconnected, which should start with: "Hi there, I'm glad we reconnected. Do you still need help with....".
+            
+            gptResponse = `You are a phone call voice assistant called Silva who is trying to help elderly people with tech support. You must provide your response to the user which has just been disconnected, so you should greet the user and say you are glad they reconnected, 
+            and ask them if they still need help with the issue they were dealing with. Make it appropriate to the context of the conversation.
             Make sure it is simple and concise, and easy to understand when it is spoken out loud.
-            Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript. This is the conversation transcript so far: ` + rconversation;
-            console.log(gptPrompt);
+            Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript. This is the conversation transcript so far:` + '\n' + rconversation + '\n' + "<User is Disconnected>" + '\n' + "Silva: ";
+            console.log(gptResponse);
+            gptPrompt = ogprompt + + '\n' + rconversation + '\n' + "<User is Disconnected> + '\n'"
+
+            
+            reconnectMessage = false;
         } else{
             conversation += prompt + '\n';
             gptPrompt += conversation + '\n' + "Silva: ";
+            gptResponse = gptPrompt;
             console.log(gptPrompt);
 
         }
         
-        return gptPrompt
+        return gptResponse
       
       }
 
@@ -134,7 +155,7 @@ app.all('/gatherInput', async (request, response) => {
     const twiml = new VoiceResponse();
     // console.log(gptPrompt);
     if (previousUser){
-        const reconnectMessage = true;
+        reconnectMessage = true;
         const send = {
             // speechToText: "Hi, I'm having trouble with Youtube"
             speechToText: ""
@@ -157,7 +178,7 @@ app.all('/gatherInput', async (request, response) => {
         action: '/voice'
     }).say({
         voice: 'Google.en-GB-Neural2-A',
-    }, "Hi there, I'm glad we reconnected. " + result);
+    },  result);
 
     } else{
         previousUser = true;
