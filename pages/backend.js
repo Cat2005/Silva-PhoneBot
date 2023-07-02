@@ -2,20 +2,48 @@ const { Configuration, OpenAIApi } = require('openai');
 const express = require('express');
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 const bodyParser = require('body-parser');
+require('dotenv').config();
+
 
 let gptPrompt = `You are a voice assistant called Silva who is trying to help elderly people with tech support.
 The prompt you will receive below is a transcript of what you and they have said so far.
 Please provide your response, which will be spoken out loud to them.
 Make sure it is simple and concise, and easy to understand when it is spoken out loud.
-Make sure you are kind and friendly.
+Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript.
 The following piece of information is VERY IMPORTANT: Make sure when you answer, your response should NEVER say 'Silva:' at the start, EVER.
 Also, make sure you don't say 'The response is:' or 'Response:' in your answer. 
 If the user asks you to talk more slowly, put more commas in your answer so it will be read out more slowly. 
 Also, if at any point the user seems really frustrated or upset, or nothing seems to be working, tell them "It seems you may need some expert help. Would you like me to put you into contact with a human expert?"
 Just immediately start answering the question please. 
 Here is the transcript so far:
-Silva: Hi there, I'm Silva, how can I help?
-User: `;
+ `;
+
+ let ogprompt = `You are a voice assistant called Silva who is trying to help elderly people with tech support.
+The prompt you will receive below is a transcript of what you and they have said so far.
+Please provide your response, which will be spoken out loud to them.
+Make sure it is simple and concise, and easy to understand when it is spoken out loud.
+Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript.
+The following piece of information is VERY IMPORTANT: Make sure when you answer, your response should NEVER say 'Silva:' at the start, EVER.
+Also, make sure you don't say 'The response is:' or 'Response:' in your answer. 
+If the user asks you to talk more slowly, put more commas in your answer so it will be read out more slowly. 
+Also, if at any point the user seems really frustrated or upset, or nothing seems to be working, tell them "It seems you may need some expert help. Would you like me to put you into contact with a human expert?"
+Just immediately start answering the question please. 
+Here is the transcript so far:
+ `;
+
+let conversation = `Silva: Hi there, I'm Silva, a voice-based assistant who's here to help you with any tech-related issues - how can I help you today?
+User:`;
+
+let reconnectPrompt = `You are a phone call voice assistant called Silva who is trying to help elderly people with tech support. Please provide your response, which will be spoken out loud to them.
+Make sure it is simple and concise, and easy to understand when it is spoken out loud.
+Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript. The prompt you will receive below is a transcript of what you and they have said so far.
+The user has just been disconnected but has called back. As such, your next message should say something like you are glad they reconnected and ask them if they still need
+help with whatever issue they were having. If they disconnected for a specific reason that they told you about, for example they had to take a call from their grandchild, you
+should try and be friendly and say I hope your call went well. Make it appropriate for the context of the transcript you will receive below.`;
+
+let previousUser = false;
+let reconnectMessage = false;
+let rconversation = "";
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -23,17 +51,32 @@ app.use(bodyParser.json());
 
 const openAPIGet = async (req, res) => {
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: "",
       });
     const openai = new OpenAIApi(configuration);
 
     const generatePrompt = (prompt) => {
         // console.log("prompt is", prompt);
+        if (reconnectMessage) {
+            
+            gptResponse = `You are a phone call voice assistant called Silva who is trying to help elderly people with tech support. You must provide your response to the user which has just been disconnected, so you should greet the user and say you are glad they reconnected, 
+            and ask them if they still need help with the issue they were dealing with. Make it appropriate to the context of the conversation.
+            Make sure it is simple and concise, and easy to understand when it is spoken out loud.
+            Make sure you are kind, friendly, and extremely patient and encouraging. You should never repeat answers that are already in the transcript. This is the conversation transcript so far:` + '\n' + rconversation + '\n' + "<User is Disconnected>" + '\n' + "Silva: ";
+            console.log(gptResponse);
+            gptPrompt = ogprompt + + '\n' + rconversation + '\n' + "<User is Disconnected> + '\n'"
+
+            
+            reconnectMessage = false;
+        } else{
+            conversation += prompt + '\n';
+            gptPrompt += conversation + '\n' + "Silva: ";
+            gptResponse = gptPrompt;
+            console.log(gptPrompt);
+
+        }
         
-  
-        gptPrompt += prompt + '\n';
-        console.log(gptPrompt);
-        return gptPrompt
+        return gptResponse
       
       }
 
@@ -62,6 +105,7 @@ const openAPIGet = async (req, res) => {
         });
         console.log(completion.data.choices[0].text);
         gptPrompt += "Silva: " + completion.data.choices[0].text + '\n';
+        rconversation = conversation + '\n' + "Silva: " + completion.data.choices[0].text + '\n';
         return completion.data.choices[0].text.replace('Silva:', '');
       } catch(error) {
         // Consider adjusting the error handling logic for your use case
@@ -108,17 +152,56 @@ const openAPIGet = async (req, res) => {
 //   });
 
 app.all('/gatherInput', async (request, response) => {
-
     const twiml = new VoiceResponse();
+    // console.log(gptPrompt);
+    if (previousUser){
+        reconnectMessage = true;
+        const send = {
+            // speechToText: "Hi, I'm having trouble with Youtube"
+            speechToText: ""
+           
+            // speechToText: await awaitUserResponse()
+          };
+        
+        const result = await openAPIGet({
+            method: "POST",
+            headers: {
+            "Content-Type": "application/json",
+            },
+            body: send,
+      });
+      
 
-    const gather = twiml.gather({
+      const gather = twiml.gather({
         input: 'speech',
         speechTimeout: 'auto',
         action: '/voice'
     }).say({
-        voice: 'Polly.Joanna',
-    }, "Hi there, I'm Silva, how can I help?");
+        voice: 'Google.en-GB-Neural2-A',
+    },  result);
 
+    } else{
+        previousUser = true;
+        
+
+        
+        
+        // twiml.say({
+        //     voice: 'Google.en-GB-Neural2-C',
+        // }, "Hi there, I'm Silva, a voice-based assistant who's here to help you with any tech-related issues. How can I help you today?");
+
+        const gather = twiml.gather({
+            input: 'speech',
+            speechTimeout: 'auto',
+            action: '/voice'
+        }).say({
+            voice: 'Google.en-GB-Neural2-A',
+        }, "Hi there, I'm Silva, a voice-based assistant who's here to help you with any tech-related issues - how can I help you today?");
+
+    }
+    
+    
+ 
     
     // Render the response as XML in reply to the webhook request
     // console.log(twiml.toString());
@@ -177,7 +260,7 @@ app.all('/voice', async (request, response) => {
       console.log(result);
       twiml.say(
         {
-            voice: 'Polly.Joanna', // Replace with the desired Amazon Polly voice
+            voice: 'Google.en-GB-Neural2-A', // Replace with the desired Amazon Polly voice
         },
         result
       );
