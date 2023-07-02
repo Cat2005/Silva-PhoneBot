@@ -13,9 +13,9 @@
 
 ### -----------------------------------------------------------------------------------------
 ### Technologies used in setting up SILVA:
-### - Twilio: for the call and the voice recognision 
-### - ChatGPT: for generating the replies
-### - Google Neural2-A: for generating a natural AI human voice
+### > Twilio: for the call and the voice recognision 
+### > ChatGPT: for generating the replies
+### > Google Neural2-A: for generating a natural AI human voice
 
 ####
 
