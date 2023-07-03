@@ -7,7 +7,7 @@ Silva is an AI-powered voice bot designed to offer tech support with a specific 
 
 # Using Silva
 
-### 1. Wait until the developers of Silva run "node backend.js" to set up the server.
+### 1. Developer server must be running in order to use Silva.
 ### 2. Once the server is up, simply dial +44 7403 939825 on your phone.
 ### 3. Silva should be here to help you now! :D
 
