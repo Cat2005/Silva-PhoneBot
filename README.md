@@ -1,21 +1,23 @@
-# SILVA -- VoiceBot
-### Silva Makes your life better!
-### This is a VoiceBot created for supporting elderly people on technical issues.
+# Silva - Phone Bot providing tech support to elderly people
+
+Silva is an AI-powered voice bot designed to offer tech support with a specific focus on encouraging elderly individuals to get online. Anyone can use Silva, all you need is a phone and to dial the number +44 7403 939825.
+
+**Silva won 1st prize at AthenaHack 2023** as part of Cisco's theme "Breaking Barriers and Building Bridges: Empowering Accessibility and Inclusion Through Innovation."
 
 
-### ----------------------------------------------------------------------------------------
-### To test it, 
+# Using Silva
+
 ### 1. Wait until the developers of Silva run "node backend.js" to set up the server.
 ### 2. Once the server is up, simply dial +44 7403 939825 on your phone.
 ### 3. Silva should be here to help you now! :D
 
 ### Note: Don't worry if you accidentally hang up the call, Silva remembers and will keep helping you once you've reconnected by calling again! 
 
-### -----------------------------------------------------------------------------------------
-### Technologies used in setting up SILVA:
-### > Twilio: for the call and the voice recognision 
-### > ChatGPT: for generating the replies
-### > Google Neural2-A: for generating a natural AI human voice
+
+# Technologies used
+### > Twilio: for generating phone number and user voice transcription
+### > Davinci-003: for generating bot replies
+### > Google Neural2-A: for generating a natural-sounding voice
 
 ####
 
